@@ -1,4 +1,6 @@
 #include <duk/duk_ControlContext.hpp>
+#include <sstream>
+#include <iomanip>
 
 namespace duk
 {
@@ -9,6 +11,10 @@ namespace duk
         auto ctx_control = duk_push_object(ctx);
         duk_push_string(ctx, control->nacp.version);
         duk_put_prop_string(ctx, ctx_control, "version");
+        std::stringstream strm;
+        strm << std::setw(16) << std::setfill('0') << std::hex << std::uppercase << control->nacp.titleID0;
+        duk_push_string(ctx, strm.str().c_str());
+        duk_put_prop_string(ctx, ctx_control, "applicationId");
         auto ctx_control_entries = duk_push_array(ctx);
         for(u32 i = 0; i < 0x10; i++)
         {
