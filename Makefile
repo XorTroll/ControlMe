@@ -17,27 +17,13 @@ include $(DEVKITPRO)/libnx/switch_rules
 # INCLUDES is a list of directories containing header files
 # EXEFS_SRC is the optional input directory containing data copied into exefs, if anything this normally should only contain "main.npdm".
 #---------------------------------------------------------------------------------
-TARGET		:=	sys-tweak
+TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-OUTDIR		:=	out
-RESOURCES	:=	res
-SOURCES		:=	src lib/inih
+SOURCES		:=	Source Source/ns Source/duk
 DATA		:=	data
-INCLUDES	:=	src lib/inih
+INCLUDES	:=	Include Include/ns Include/duk
 EXEFS_SRC	:=	exefs_src
 
-DEFINES	:=	-DDISABLE_IPC -DTARGET="\"$(TARGET)\""
-
-#---------------------------------------------------------------------------------
-# options for features
-#---------------------------------------------------------------------------------
-FEATURES := NSVM_SAFE NSAM_CONTROL
-TOGGLES := LOGGING
-#---------------------------------------------------------------------------------
-ENABLED_FEATURES := $(foreach feat,$(FEATURES),$(if $(or $(FEAT_$(feat)),$(FEAT_ALL)),$(feat)))
-DEFINES += $(foreach feat,$(ENABLED_FEATURES),-DHAVE_$(feat))
-ENABLED_TOGGLES := $(foreach toggle,$(TOGGLES),$(if $(or $(TOGL_$(feat)),$(TOGL_ALL)),$(toggle)))
-DEFINES += $(foreach toggle,$(ENABLED_TOGGLES),-DENABLE_$(toggle))
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
@@ -59,8 +45,7 @@ LIBS	:= -lstratosphere -lnx
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBSTRATOSPHERE := $(CURDIR)/lib/libstratosphere
-LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(LIBSTRATOSPHERE)
+LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(CURDIR)/libstratosphere
 
 
 #---------------------------------------------------------------------------------
@@ -70,7 +55,7 @@ LIBDIRS	:= $(PORTLIBS) $(LIBNX) $(LIBSTRATOSPHERE)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/$(OUTDIR)/$(TARGET)
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
 export TOPDIR	:=	$(CURDIR)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
@@ -108,7 +93,18 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 export BUILD_EXEFS_SRC := $(TOPDIR)/$(EXEFS_SRC)
 
-export APP_JSON := $(TOPDIR)/$(RESOURCES)/sysmodule.json
+ifeq ($(strip $(CONFIG_JSON)),)
+	jsons := $(wildcard *.json)
+	ifneq (,$(findstring $(TARGET).json,$(jsons)))
+		export APP_JSON := $(TOPDIR)/$(TARGET).json
+	else
+		ifneq (,$(findstring config.json,$(jsons)))
+			export APP_JSON := $(TOPDIR)/config.json
+		endif
+	endif
+else
+	export APP_JSON := $(TOPDIR)/$(CONFIG_JSON)
+endif
 
 .PHONY: $(BUILD) clean all
 
@@ -116,19 +112,14 @@ export APP_JSON := $(TOPDIR)/$(RESOURCES)/sysmodule.json
 all: $(BUILD)
 
 $(BUILD):
-	@[ -n "$(ENABLED_FEATURES)" ] || (echo "Please enable at least one feature with FEAT_X env vars, where X can be (ALL $(FEATURES))" 1>&2; exit 1)
-	@echo "* ENABLED_FEATURES: $(ENABLED_FEATURES)"
-	@echo "* ENABLED_TOGGLES: $(ENABLED_TOGGLES)"
-	@$(MAKE) -C $(LIBSTRATOSPHERE)
 	@[ -d $@ ] || mkdir -p $@
-	@[ -d $(OUTDIR) ] || mkdir -p $(OUTDIR)
+	@$(MAKE) -C libstratosphere/
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
-	@$(MAKE) -C $(LIBSTRATOSPHERE) clean
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).kip $(TARGET).nsp $(TARGET).npdm $(TARGET).nso $(TARGET).elf $(OUTDIR)
+	@rm -fr $(BUILD) $(TARGET).nsp $(TARGET).npdm $(TARGET).nso $(TARGET).elf
 
 
 #---------------------------------------------------------------------------------
@@ -140,12 +131,17 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
+all	:	$(OUTPUT).nsp
 
-all: $(OUTPUT).nsp
+ifeq ($(strip $(APP_JSON)),)
+$(OUTPUT).nsp	:	$(OUTPUT).nso
+else
+$(OUTPUT).nsp	:	$(OUTPUT).nso $(OUTPUT).npdm
+endif
 
-$(OUTPUT).nsp: $(OUTPUT).nso $(OUTPUT).npdm
+$(OUTPUT).nso	:	$(OUTPUT).elf
 
-$(OUTPUT).elf: $(OFILES)
+$(OUTPUT).elf	:	$(OFILES)
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data

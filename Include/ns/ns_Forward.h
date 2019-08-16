@@ -13,22 +13,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+ 
 #pragma once
 #include <switch.h>
-#include <time.h>
-#include <vector>
-#include <string>
-#include <atomic>
-#include <cstdarg>
 
-#define FILE_LOG_FILE_PATH "/" TARGET ".txt"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-class FileUtils {
-	public:
-		static void Exit();
-		static Result Initialize();
-		static bool IsInitialized();
-		static void InitializeAsync();
-		static void LogLine(const char *format, ...);
-};
+Result nsGetReadOnlyApplicationControlDataInterface_Fwd(Service* s, Service* out);
+Result nsGetApplicationControlData_Fwd(Service* s, u8 flag, u64 tid, void* buffer, size_t size, size_t* actual_size);
+Result nsGetApplicationDesiredLanguage_Fwd(Service* s, u32 bitmask, u8* out_langentry);
+Result nsConvertApplicationLanguageToLanguageCode_Fwd(Service* s, u8 input, u64* out);
+Result nsConvertLanguageCodeToApplicationLanguage_Fwd(Service* s, u64 input, u8* out);
+
+#ifdef __cplusplus
+}
+#endif

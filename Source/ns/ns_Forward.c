@@ -16,9 +16,10 @@
 
 #include <string.h>
 #include <switch.h>
-#include "ns_shim.h"
+#include <ns/ns_Forward.h>
 
-Result nsGetROAppControlDataInterfaceFwd(Service* s, u32 cmd_id, Service* out) {
+Result nsGetReadOnlyApplicationControlDataInterface_Fwd(Service* s, Service* out)
+{
 	IpcCommand c;
 	ipcInitialize(&c);
 
@@ -30,7 +31,7 @@ Result nsGetROAppControlDataInterfaceFwd(Service* s, u32 cmd_id, Service* out) {
 	raw = serviceIpcPrepareHeader(s, &c, sizeof(*raw));
 
 	raw->magic = SFCI_MAGIC;
-	raw->cmd_id = cmd_id;
+	raw->cmd_id = 7989;
 
 	Result rc = serviceIpcDispatch(s);
 
@@ -54,7 +55,7 @@ Result nsGetROAppControlDataInterfaceFwd(Service* s, u32 cmd_id, Service* out) {
 	return rc;
 }
 
-Result nsGetAppControlDataFwd(Service* s, u32 cmd_id, u8 flag, u64 tid, void* buffer, size_t size, size_t* out_actual_size) {
+Result nsGetApplicationControlData_Fwd(Service* s, u8 flag, u64 tid, void* buffer, size_t size, size_t* out_actual_size) {
 	IpcCommand c;
 	ipcInitialize(&c);
 	ipcAddRecvBuffer(&c, buffer, size, 0);
@@ -69,7 +70,7 @@ Result nsGetAppControlDataFwd(Service* s, u32 cmd_id, u8 flag, u64 tid, void* bu
 	raw = ipcPrepareHeader(&c, sizeof(*raw));
 
 	raw->magic = SFCI_MAGIC;
-	raw->cmd_id = cmd_id;
+	raw->cmd_id = 0;
 	raw->flag = flag;
 	raw->tid = tid;
 
@@ -95,7 +96,7 @@ Result nsGetAppControlDataFwd(Service* s, u32 cmd_id, u8 flag, u64 tid, void* bu
 	return rc;
 }
 
-Result nsGetAppDesiredLanguageFwd(Service* s, u32 cmd_id, u32 bitmask, u8* out_langentry) {
+Result nsGetApplicationDesiredLanguage_Fwd(Service* s, u32 bitmask, u8* out_langentry) {
 	IpcCommand c;
 	ipcInitialize(&c);
 
@@ -108,7 +109,7 @@ Result nsGetAppDesiredLanguageFwd(Service* s, u32 cmd_id, u32 bitmask, u8* out_l
 	raw = ipcPrepareHeader(&c, sizeof(*raw));
 
 	raw->magic = SFCI_MAGIC;
-	raw->cmd_id = cmd_id;
+	raw->cmd_id = 1;
 	raw->bitmask = bitmask;
 
 	Result rc = serviceIpcDispatch(s);
@@ -133,7 +134,7 @@ Result nsGetAppDesiredLanguageFwd(Service* s, u32 cmd_id, u32 bitmask, u8* out_l
 	return rc;
 }
 
-Result nsConvertAppLanguageToLanguageCodeFwd(Service* s, u32 cmd_id, u8 langentry, u64* out_langcode) {
+Result nsConvertApplicationLanguageToLanguageCode_Fwd(Service* s, u8 langentry, u64* out_langcode) {
 	IpcCommand c;
 	ipcInitialize(&c);
 
@@ -146,7 +147,7 @@ Result nsConvertAppLanguageToLanguageCodeFwd(Service* s, u32 cmd_id, u8 langentr
 	raw = ipcPrepareHeader(&c, sizeof(*raw));
 
 	raw->magic = SFCI_MAGIC;
-	raw->cmd_id = cmd_id;
+	raw->cmd_id = 2;
 	raw->langentry = langentry;
 
 	Result rc = serviceIpcDispatch(s);
@@ -171,7 +172,7 @@ Result nsConvertAppLanguageToLanguageCodeFwd(Service* s, u32 cmd_id, u8 langentr
 	return rc;
 }
 
-Result nsConvertLanguageCodeToAppLanguageFwd(Service* s, u32 cmd_id, u64 langcode, u8* out_langentry) {
+Result nsConvertLanguageCodeToApplicationLanguage_Fwd(Service* s, u64 langcode, u8* out_langentry) {
 	IpcCommand c;
 	ipcInitialize(&c);
 
@@ -184,7 +185,7 @@ Result nsConvertLanguageCodeToAppLanguageFwd(Service* s, u32 cmd_id, u64 langcod
 	raw = ipcPrepareHeader(&c, sizeof(*raw));
 
 	raw->magic = SFCI_MAGIC;
-	raw->cmd_id = cmd_id;
+	raw->cmd_id = 3;
 	raw->langcode = langcode;
 
 	Result rc = serviceIpcDispatch(s);
